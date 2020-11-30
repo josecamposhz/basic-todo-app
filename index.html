@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo App</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css">
+    <style>
+        .completed-todo {
+            text-decoration: line-through;
+            color: #6c757d !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app" class="container mx-auto mt-4">
+        <h1>Todo App</h1>
+        <div class="form-group">
+            <input v-model="newTodo" class="form-control" placeholder="Crear una nota..." @keyup.enter="addNewTodo()">
+            <span v-if="error.length > 0" class="text-danger p-1">{{ error }}</span>
+        </div>
+        <div class="card" v-if="todos.length > 0">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item" v-for="(todo, index) in todos">
+
+                    <div v-if="index === editIndex" class="d-flex">
+                        <input class="form-control mr-auto" type="text" v-model="editTodo.description">
+                        <button type="button" class="btn btn-light mx-2" @click="saveTask(false)">Cancelar</button>
+                        <button type="button" class="btn btn-success" @click="saveTask(true)">Guardar</button>
+                    </div>
+                    <div v-else class="d-flex align-items-center">
+                        <span class="mr-auto" :class="{'completed-todo': todo.status}" role="button"
+                            @click="changeStatus(index)">
+                            {{ todo.description }}
+                        </span>
+                        <button type="button" class="btn btn-info mx-2" @click="editTask(index)">Editar</button>
+                        <button type="button" class="btn btn-danger" @click="deleteTodo(index)">Eliminar</button>
+                    </div>
+
+                </li>
+            </ul>
+        </div>
+        <hr>
+        <pre>{{ $data }}</pre>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2/dist/vue.js"></script>
+    <script>
+        const app = new Vue({
+            el: "#app",
+            data: {
+                newTodo: '',
+                error: '',
+                todos: [],
+                editTodo: null,
+                editIndex: -1
+            },
+            methods: {
+                addNewTodo() {
+                    if (this.newTodo.length > 0) {
+                        this.todos.push({
+                            description: this.newTodo,
+                            status: false
+                        });
+                        this.newTodo = '';
+                        this.error = '';
+                    } else {
+                        this.error = 'Campo requerido';
+                    }
+                },
+                changeStatus(index) {
+                    this.todos[index].status = !this.todos[index].status;
+                },
+                editTask(index) {
+                    // Utilizamos el spread-operator para crear una copia del elemento seleccionado
+                    // https://developer.mozilla.org/es/docs/Web/JavaScript/Referencia/Operadores/Spread_operator
+                    // Esto se realiza para evitar la referencia entre el elemento seleccionado y editTodo
+                    // Si solo hicieramos this.editTodo = this.todos[index], cada vez que editemos editTodo cambiara
+                    // automaticamente nuestro arreglo, lo cual no queremos en este caso
+                    this.editTodo = { ...this.todos[index] };
+                    // Guardamos el index para mostrar el input con el v-if en el HTML
+                    this.editIndex = index;
+                },
+                saveTask(status) {
+                    // Si status es true guardamos los cambios
+                    if (status) {
+                        this.todos[this.editIndex].description = this.editTodo.description;
+                    }
+                    this.editTodo = null;
+                    this.editIndex = -1;
+                },
+                deleteTodo(index) {
+                    this.todos.splice(index, 1);
+                }
+            },
+        })
+    </script>
+</body>
+
+</html>
